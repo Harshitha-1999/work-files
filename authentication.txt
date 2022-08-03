@@ -1,0 +1,39 @@
+{{- if .Values.app.authzPolicy.azureAD.enabled }}
+apiVersion: "security.istio.io/v1beta1"
+kind: "RequestAuthentication"
+metadata:
+  name: "{{ .Values.global.project }}-ra"
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: {{.Values.app.labels.app}}
+
+  jwtRules:
+  - issuer: "https://sts.windows.net/b7f604a0-00a9-4188-9248-42f3a5aac2e9/"
+    jwksUri: "https://login.microsoftonline.com/{{.Values.global.tenantID}}/discovery/v2.0/keys"
+    forwardOriginalToken: true #To keep original token for upstream request and default is false
+    fromHeaders:
+      - name: "Authorization"
+        prefix: "Bearer "
+{{- end }}
+---
+{{- if .Values.app.authzPolicy.groups.enabled }}
+apiVersion: "security.istio.io/v1beta1"
+kind: "RequestAuthentication"
+metadata:
+  name: "{{ .Values.global.project }}-ra"
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: {{.Values.app.labels.app}}
+
+  jwtRules:
+  - issuer: "https://sts.windows.net/b7f604a0-00a9-4188-9248-42f3a5aac2e9/"
+    jwksUri: "https://login.microsoftonline.com/{{.Values.global.tenantID}}/discovery/v2.0/keys"
+    forwardOriginalToken: true #To keep original token for upstream request and default is false
+    fromHeaders:
+      - name: "Authorization"
+        prefix: "Bearer "
+{{- end }}
