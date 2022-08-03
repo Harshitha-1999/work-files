@@ -73,46 +73,23 @@ Cluster login through cmd
 :
 -----------------------------------------
 Steps to login into ba1 cluster:
-
- 
-
+-----
 az login --use-device-code                  //ba-account
-
- 
 To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code XXXX to authenticate.
  
-
-
- 
-az account set -s “72f74a79-764f-41bb-9b4c-f9b4ffd06d4f" 
-
-
+az account set -s â€œ72f74a79-764f-41bb-9b4c-f9b4ffd06d4f"
  
 az aks get-credentials --resource-group az-entaks-nonprod-01-esco-dev-westus-rg-01 -n esco-aksba1-nonprod-westus-cluster-01
- 
-
-
-
- 
-
- 
-
 
 kubectl get ns                              // normal account
-
- 
-
-
 To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code XXXX to authenticate.
 
 ------------------------------------------------------------
 steps login to ba1 cluster:
-
-
-
+----
 az login --use-device-code
 
-az account set -s “72f74a79-764f-41bb-9b4c-f9b4ffd06d4f"
+az account set -s â€œ72f74a79-764f-41bb-9b4c-f9b4ffd06d4f"
 
 az account set -s "az-entaks-nonprod-01"
 az aks get-credentials --resource-group az-entaks-nonprod-01-esco-dev-westus-rg-01 -n esco-aksba1-nonprod-westus-cluster-01
@@ -125,8 +102,6 @@ az login --use-device-code
 az account set -s "az-entaks-nonprod-02"
 az aks get-credentials --resource-group az-entaks-nonprod-02-esco-nonprod-westus-rg-01 -n esco-aksba2-nonprod-westus-cluster-01
 kubectl get ns
-
-
 
 ------------------------------------------------------------------------
 Steps to login into prod cluster:
@@ -141,65 +116,21 @@ kubectl get ns
 
 -----------------------------------------------------------------------------
 
- 
-
-
-
-az login OR az login –use-device-code       //
+az login OR az login â€“use-device-code       //
 login using ba-account.
-
-
-
-
-
-
-az account set -s “72f74a79-764f-41bb-9b4c-f9b4ffd06d4f"
-
-
-
+az account set -s â€œ72f74a79-764f-41bb-9b4c-f9b4ffd06d4f"
 az aks get-credentials --resource-group az-entaks-nonprod-01-esco-dev-westus-rg-01 -n esco-aksba1-nonprod-westus-cluster-01
-
-
-
-
-
 kubectl get ns              // 
+It prompt for login with normal account:
 
-
-
-It prompt for login with normal account.
-
-
-
-
-
-
-kubectl get all –n <name_Space>       //
-
-
+kubectl get all â€“n <name_Space>       //
 
 List out all k8s components.
 
-
-
-
-
-kubectl logs <name of component> -n <name_Space> -c <name_container> 
-
-
-
-
-
+kubectl logs <name of component> -n <name_Space> -c <name_container>
 kubectl describe logs <name of component> -n <name_Space>
-
-
-
-
-
 kubectl delete <name of component> -n <name_Space>
 
-
- 
 
 -----------------------------
 https://memiu.prod.westus.aks.az.albertsons.com/memiu-web/
