@@ -1,0 +1,76 @@
+Dockerfile for me01r:
+
+# Ubuntu Base image with openjdk8
+FROM escoacrprod01.azurecr.io/ubuntu/openjdk:1.8
+ 
+# Adding application specific group and user
+RUN groupadd -g 999 me01r-grp && useradd -r -u 999 -g root me01r 
+ 
+# Creating app directory
+RUN mkdir /app
+ 
+# Copying application jar to app directory
+COPY target/*.jar /app
+ 
+# Changing the user and/or group ownership of an app directory
+RUN chown me01r:me01r-grp /app -R
+ 
+# Exposing the container port
+EXPOSE 8080
+ 
+# Switching user to application user from root
+USER me01r
+
+# Running the application jar as an entry point
+ENTRYPOINT ["java", "-jar", "/app/dino-octopus-recipe-1.0.local.jar"]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Dockerfile for nodejs application:
+
+
+FROM node:alpine
+
+RUN apk update && apk upgrade
+
+COPY package.json /app/package.json
+COPY app.js /app/app.js
+COPY utils.js /app/utils.js
+
+WORKDIR /app
+
+RUN npm install
+
+RUN chmod -R u+x /app && \
+    chgrp -R 0 /app && \
+    chmod -R g=u /app /etc/passwd
+
+ENV PORT 8080
+EXPOSE 8080
+
+CMD ["node", "app.js"]
+
+--------------------------------------->
+helm lint C:\Users\KTHUM02\platform-devops-helmcharts\application\dxt1-rest-sprboot
+
+helm lint C:\Users\KTHUM02\platform-devops-helmcharts\application\dxt1-rest-sprboot --values C:\Users\KTHUM02\platform-devops-helmcharts\application\dxt1-rest-sprboot\env\dev\dxt1-rest-sprboot\values.yaml
+
+
+
+
+

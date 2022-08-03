@@ -1,0 +1,58 @@
+8bf6e80e3fef310f34ba7c68e28562751bdc42fc 
+
+git clone https://token:x-oauth-basic@git_url
+
+git clone https://8bf6e80e3fef310f34ba7c68e28562751bdc42fc:x-oauth-basic@github.albertsons.com/albertsons/platform-devops-helmcharts.git
+
+git clone https://8bf6e80e3fef310f34ba7c68e28562751bdc42fc:x-oauth-basic@github.albertsons.com/albertsons/memiu-web.git
+
+
+
+
+
+ mq:
+      enabled: true
+      url: "dgm010dc1.albertsons.com"
+      ip: 172.25.38.206/32
+      port: 10033  
+
+
+az login
+
+
+az account set -s “72f74a79-764f-41bb-9b4c-f9b4ffd06d4f”
+
+
+az aks get-credentials --resource-group az-entaks-nonprod-01-esco-dev-westus-rg-01 -n esco-aksba1-nonprod-westus-cluster-01
+------------------------------------------------------------------------------
+# Ubuntu Base image with nodejs14.x
+FROM node:latest
+ 
+# Adding application specific group and user
+RUN groupadd -g 999 sdova-grp && useradd -r -u 999 -g root sdova
+ 
+# Creating app directory and switching
+WORKDIR /app
+ 
+# Copying package.json to app directory
+COPY package.json .
+ 
+# Installing the dependency node modules
+RUN npm install
+ 
+# Copying application code to app directory
+COPY . .
+ 
+# Building the application
+RUN npm run build
+ 
+# Changing the user and/or group ownership of an app directory
+RUN chown sdova:sdova-grp /app -R
+ 
+EXPOSE 8080
+ 
+# Switching user to application user from root
+USER sdova
+ 
+# Running the application
+CMD [ "node", "server.js" ]

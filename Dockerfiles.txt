@@ -1,0 +1,297 @@
+1) create a Docker container with nodejs and java(open jdk):  MEMIU and msal integration
+---------------------------------------------------------------
+
+# Taking ubuntu as base image for the final image
+FROM escoacrprod01.azurecr.io/ubuntu/openjdk:1.8
+
+ENV ARTIFACT="memiu-web-0.0.1-SNAPSHOT.jar"
+
+RUN groupadd -g 999 memiu-grp && useradd -r -u 999 -g memiu-grp memiu
+# Creating app and change directory to /app
+RUN mkdir -p /home/memiu/
+RUN mkdir /app
+COPY target/*.jar /app
+COPY start.sh /app
+
+
+# Install app dependencies
+COPY msal-server/.npmrc /app/
+COPY msal-server/package*.json /app/
+# Granting th eowner and group to app dir
+RUN chown memiu:memiu-grp /app -R 
+RUN chown memiu:memiu-grp /home/memiu/ -R
+RUN chgrp -R 0 /app && chmod -R g+rwX /app
+RUN rm -f /app/.npmrc
+
+RUN apt-get install -y curl \
+  && curl -sL https://deb.nodesource.com/setup_14.x | bash - \
+  && apt-get install -y nodejs \
+  && curl -L https://www.npmjs.com/install.sh | sh 
+  
+COPY . /app
+EXPOSE 7000
+EXPOSE 8080
+USER memiu
+
+#CMD ["sh", "-c", "npm run buildsrv && npm run startsrv"] 
+ENTRYPOINT ["bash", "/app/start.sh"]
+
+
+---------------------------------------------------------------------------------------------
+2) java dockerfile: MEGN
+---------------------------------
+
+FROM escoacrprod01.azurecr.io/ubuntu/openjdk:1.8
+## This is for local testing
+#FROM openjdk:12
+#Declare env variables
+ENV ARTIFACT="megn-web-mdb.jar"
+
+
+# Adding application specific group and user
+RUN groupadd -g 999 megn-grp && useradd -r -u 999 -g root megn
+
+# Creating app directory
+RUN mkdir /app
+RUN mkdir -p /logs/
+
+# Copying application jar to app directory
+COPY target/${ARTIFACT} /app
+
+COPY start.sh /app
+# Changing the user and/or group ownership of an app directory
+RUN chown megn:megn-grp /app -R
+RUN chown megn:megn-grp /logs/ -R
+
+# Exposing the container port
+EXPOSE 8080
+
+
+# Switching user to application user from root
+USER megn
+
+# Running the application jar as an entry point
+ENTRYPOINT ["java", "-jar", "/app/megn-web-mdb.jar"]
+#ENTRYPOINT ["bash", "/app/start.sh"]
+## This is for local testing
+#CMD ["java", "-jar", "/app/${ARTIFACT}"]
+
+-----------------------------------------------------------------------------------
+megn dockerfile updated with jms values:
+--------------------------------------------------
+FROM escoacrprod01.azurecr.io/ubuntu/openjdk:1.8
+## This is for local testing
+#FROM openjdk:12
+#Declare env variables
+ENV ARTIFACT="megn-web-mdb.jar"
+
+
+# Adding application specific group and user
+RUN groupadd -g 999 megn-grp && useradd -r -u 999 -g root megn
+
+# Creating app directory
+RUN mkdir /app
+RUN mkdir -p /logs/
+
+# Copying application jar to app directory
+COPY target/${ARTIFACT} /app
+
+COPY start.sh /app
+RUN chmod 777 /app/start.sh
+# Changing the user and/or group ownership of an app directory
+RUN chown megn:megn-grp /app -R
+RUN chown megn:megn-grp /logs/ -R
+
+# Exposing the container port
+EXPOSE 8080
+
+
+# Switching user to application user from root
+USER megn
+
+# Running the application jar as an entry point
+#ENTRYPOINT ["java", "-Duser.timezone=US/Mountain", "-jar", "/app/megn-web-mdb.jar"]
+#ENTRYPOINT ["bash", "/app/start.sh"]
+## This is for local testing
+#CMD ["java", "-jar", "/app/${ARTIFACT}"]
+CMD /app/start.sh run
+
+
+-----------------------------------------------------
+start.sh file with jms values:
+-------------------------------
+#start.sh
+java -Xms128m -Xmx256m -XX:+UseG1GC -jar /app/megn-web-mdb.jar --server.port=8080 &
+java -Xms128m -Xmx256m -XX:+UseG1GC -jar /app/megn-web-mdb.jar --server.port=8081 &
+java -Xms128m -Xmx256m -XX:+UseG1GC -jar /app/megn-web-mdb.jar --server.port=8082 
+
+---------------------------------------
+
+ENTRYPOINT ["java", "-Xms128M", "-Xmx128M", "-XX:+UseG1GC", "-XX:+UseStringDeduplication", "-Duser.timezone=US/Mountain", "-jar", "/app/megn-web-mdb.jar"]
+
+ENTRYPOINT ["java", "-XX:InitialHeapSize=12800000", "-XX:MaxHeapSize=12800000", "-XX:+UseG1GC", "-Duser.timezone=US/Mountain", "-jar", "/app/megn-web-mdb.jar"]
+
+ #ENTRYPOINT ["bash", "/app/start.sh"]
+## This is for local testing
+#CMD ["java", "-jar", "/app/${ARTIFACT}"]
+
+------------------------------------------------------------------
+
+
+C:\Users\KTHUM02>kubectl exec -it megn-web-mdb-deployment-76755467df-wjbwp sh -n megn-qa1 -c megn-web-mdb
+kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl kubectl exec [POD] -- [COMMAND] instead.
+$ jps -v
+23 megn-web-mdb.jar -Xms128m -Xmx256m -XX:+UseG1GC
+24 megn-web-mdb.jar -Xms128m -Xmx256m -XX:+UseG1GC
+25 megn-web-mdb.jar -Xms128m -Xmx256m -XX:+UseG1GC
+175 Jps -Dapplication.home=/opt/java/openjdk -Xms8m
+$ exit
+
+------------------------
+
+C:\Users\KTHUM02>kubectl exec -it megn-web-mdb-deployment-d45b6c48-c2vrh sh -n megn-dev -c megn-web-mdb
+kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl kubectl exec [POD] -- [COMMAND] instead.
+$ jps -v
+100 Jps -Dapplication.home=/opt/java/openjdk -Xms8m
+20 megn-web-mdb.jar -Xms128m -Xmx256m -XX:+UseG1GC
+21 megn-web-mdb.jar -Xms128m -Xmx256m -XX:+UseG1GC
+22 megn-web-mdb.jar -Xms128m -Xmx256m -XX:+UseG1GC
+$ top -n 5
+top - 11:49:02 up 18:00,  0 users,  load average: 5.82, 4.47, 4.11
+Tasks:   7 total,   1 running,   6 sleeping,   0 stopped,   0 zombie
+%Cpu(s): 13.4 us,  3.1 sy,  0.1 ni, 82.4 id,  0.0 wa,  0.0 hi,  1.0 si,  0.0 st
+KiB Mem : 65866536 total,   729944 free, 59181692 used,  5954900 buff/cache
+KiB Swap:        0 total,        0 free,        0 used. 10410868 avail Mem
+
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+   20 megn      20   0 4731700 448892  16616 S   1.3  0.7   0:27.23 java
+   21 megn      20   0 4729652 441572  16264 S   0.7  0.7   0:26.89 java
+   22 megn      20   0 4729652 436764  16276 S   0.7  0.7   0:27.00 java
+    1 megn      20   0    4632    764    696 S   0.0  0.0   0:00.13 sh
+   19 megn      20   0    4632    904    836 S   0.0  0.0   0:00.00 sh
+   95 megn      20   0    4632    800    732 S   0.0  0.0   0:00.00 sh
+  182 megn      20   0   38268   3508   3060 R   0.0  0.0   0:00.00 top
+
+
+$ jps -v
+20 megn-web-mdb.jar -Xms128m -Xmx256m -XX:+UseG1GC
+21 megn-web-mdb.jar -Xms128m -Xmx256m -XX:+UseG1GC
+22 megn-web-mdb.jar -Xms128m -Xmx256m -XX:+UseG1GC
+183 Jps -Dapplication.home=/opt/java/openjdk -Xms8m
+
+
+-------------------------------------------------------------------------
+3)java dockerfile :  MEMIU
+----------------------------------------
+# Taking ubuntu as base image for the final image
+FROM escoacrprod01.azurecr.io/ubuntu/tomee/openjdk8:8.0.x 
+#FROM openjdk:11
+
+RUN groupadd -g 999 memiu-grp && useradd -r -u 999 -g memiu-grp memiu
+
+#COPY server.xml /usr/local/tomee/conf/
+#COPY setenv.sh /usr/local/tomee/bin/
+
+# Creating and change directory to /app
+#RUN mkdir /usr/local/tomee/apps
+
+# Copying jar filr from first stage to second stage build
+COPY presentation/target/*.war /usr/local/tomee/webapps
+
+# Granting the owner and group to app dir
+RUN chown memiu:memiu-grp /usr/local/tomee/ -R 
+
+# Exposing the port
+EXPOSE 8080
+
+# Switching the user to menu
+USER memiu
+
+# Starting the service
+#ENTRYPOINT ["java", "-jar", "/app/memiu-web.war"]
+CMD /usr/local/tomee/bin/catalina.sh run
+
+
+
+
+-----------------------------------------------------------
+4) JAVA - SP2K 
+-------------------
+
+# Ubuntu Base image with openjdk8 
+FROM escoacrprod01.azurecr.io/ubuntu/tomee/openjdk8:8.0.x
+
+# Adding application specific group and user 
+RUN groupadd -g 999 sp2k-grp && useradd -r -u 999 -g root sp2k 
+
+# COPY server.xml /usr/local/tomee/conf/
+# COPY setenv.sh /usr/local/tomee/bin/
+
+# Creating app directory 
+# RUN mkdir /usr/local/tomee/apps 
+RUN mkdir -p /appl/spool/wl_apps/logs/sp2k/
+
+# Copying application lib to app directory
+COPY library/*.jar /usr/local/tomee/lib/
+# Copying application jar to app directory 
+#COPY tomcat-users.xml /usr/local/tomee/conf/
+COPY target/*.ear /usr/local/tomee/webapps
+
+#catalina file update
+RUN sed -i 's/JAVA_OPTS="$JAVA_OPTS -Djava.protocol.handler.pkgs=org.apache.catalina.webresources"/JAVA_OPTS="$JAVA_OPTS -Djava.protocol.handler.pkgs=org.apache.catalina.webresources -Dsecurity.disable=true -Drmgr.env=DV -Xms128m -Xmx512m -XX:+UseG1GC"'/g /usr/local/tomee/bin/catalina.sh
+RUN sed -i '2 s/^/CATALINA_OPTS=-Djavax.persistence.provider=org.hibernate.ejb.HibernatePersistence\n/' /usr/local/tomee/bin/catalina.sh
+RUN echo "EjbTimerPool.CorePoolSize = 30" >> /usr/local/tomee/conf/system.properties
+RUN sed -i 's/<Connector port="8080" protocol="HTTP\/1.1"/<Connector port="8080" maxHttpHeaderSize="65536" protocol="HTTP\/1.1" /g' /usr/local/tomee/conf/server.xml
+# WORKDIR /app
+ 
+# Changing the user and/or group ownership of an app directory 
+# RUN chown sp2k:sp2k-grp /app -R 
+RUN chown sp2k:sp2k-grp /usr/local/tomee/ -R
+RUN chown sp2k:sp2k-grp /appl/spool/wl_apps/logs/sp2k/ -R
+
+# Exposing the container port 
+EXPOSE 8080 
+
+# Switching user to application user from root 
+USER sp2k
+
+# Starting the service
+# ENTRYPOINT ["java", "-jar", "/app/sp2k.ear"]
+CMD /usr/local/tomee/bin/catalina.sh run
+
+----------------------------------------------------------------------------------------------------------
+
+5) spring boot application - DXT1
+-----------------------------------------
+
+# Ubuntu Base image with openjdk8
+FROM escoacrprod01.azurecr.io/ubuntu/openjdk:1.8
+RUN apt-get update && apt-get install -y telnet
+# Adding application specific group and user
+RUN groupadd -g 999 dxt1r-grp && useradd -r -u 999 -g root dxt1r
+ 
+# Creating app directory
+RUN mkdir /app
+RUN mkdir -p /appl/spool/wl_apps/logs/dxt1/
+RUN mkdir -p /appl/wl_apps/domains/kafka-jks/
+
+# Copying application ear to webapps directory
+COPY target/dxt1-rest-sprboot-1.1.10-SNAPSHOT.jar /app
+
+# Changing the user and/or group ownership of an app directory
+RUN chown dxt1r:dxt1r-grp /app -R
+RUN chown dxt1r:dxt1r-grp /appl/spool/wl_apps/logs/dxt1/ -R
+RUN chown dxt1r:dxt1r-grp /appl/wl_apps/domains/kafka-jks/ -R
+
+# Exposing the container port
+EXPOSE 8080
+ 
+# Switching user to application user from root
+USER dxt1r
+ 
+# Running the application jar as an entry point
+ENTRYPOINT ["java", "-jar", "/app/dxt1-rest-sprboot-1.1.10-SNAPSHOT.jar"]
+
+
+
+
