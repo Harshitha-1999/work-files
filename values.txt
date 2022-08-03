@@ -1,0 +1,114 @@
+app:
+  #appJar: /app/memi-web.war
+  #neeed to be updated
+  akvName: memi-auth-dev-kv-01
+  replicaCount: 1
+  configFile: "env/dev/memi-web/configmap.yaml"
+  autoscaleEnabled: true
+  autoscaleMin: 1
+  autoscaleMax: 1 
+  sqlsecret: 
+    enable: false
+  clientsecret: 
+    enable: false
+  pythonsecret: 
+    enable: false
+  filesharesecret: 
+    enable: false
+  resources: 
+    limits:
+     cpu: 500m
+     memory: 1500Mi
+    requests:
+     cpu: 300m
+     memory: 1100Mi
+  micrometer:
+    enable: true 
+  appDynamics:
+    enable: false
+    akvSecretName: appd-license-key
+    env:
+      - name: APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            key: appd-key
+            name: appd-license-key
+      - name: JAVA_TOOL_OPTIONS
+        value: ' -javaagent:/opt/appdynamics-java/javaagent.jar 
+          -Dappdynamics.controller.hostName=$(APPDYNAMICS_CONTROLLER_HOST_NAME)
+          -Dappdynamics.controller.port=$(APPDYNAMICS_CONTROLLER_PORT) -Dappdynamics.controller.ssl.enabled=$(APPDYNAMICS_CONTROLLER_SSL_ENABLED)
+          -Dappdynamics.agent.accountName=$(APPDYNAMICS_AGENT_ACCOUNT_NAME) -Dappdynamics.agent.applicationName=$(APPDYNAMICS_AGENT_APPLICATION_NAME)
+          -Dappdynamics.agent.tierName=$(APPDYNAMICS_AGENT_TIER_NAME) -Dappdynamics.agent.reuse.nodeName=true
+          -Dappdynamics.agent.reuse.nodeName.prefix=$(APPDYNAMICS_AGENT_REUSE_NODE_NAME_PREFIX) 
+          -Dappdynamics.agent.accountAccessKey=$(APPDYNAMICS_AGENT_ACCOUNT_ACCESS_KEY)'        
+  containers:
+    image: memi-web
+    tag: memi
+    portName: http-memi
+    port: 8080
+    #readinessEndpoint: /memi
+    #livenessEndpoint: /memi
+    prometheusPath: /memi/management/prometheus
+    envCode: dev
+    env: 
+       - name: MEMI_CONNECTION_PASSWORD
+         value: "memi-sqlsecret@azurekeyvault"
+
+  akvSecrets:
+     akvSqlSecretName: memi-sqlsecret 
+
+  akvCerts: memi-dev-aks-platform-albertsons-com
+        
+  labels:
+    app: memi
+    project: memi-web
+    drcategory: dr2
+    environment: dev
+
+  # SqlServer url for external service communications 
+  egressSvcEntry: 
+    sqldbEnabled: true
+    sqldbUrl: "dhlz-idhlz-dev-westus-sqlsrv-01.database.windows.net"
+    sqldbIP: 172.25.96.196/32
+    sqldbport: 1433  
+
+  # Authorization policy istio enable flag
+  authzPolicy:
+    azureAD:
+      enabled: false
+    groups:
+      enabled: true
+    clientID:
+      enabled: false
+  groups:
+    memiitemconversion: "az-memi-dev-memiitemconversion"
+  
+  authzPolicyGroups:
+    group1: "memiitemconversion"
+    
+    
+
+deploymentOptions:
+  activeStrategy: standard
+  activeChannel: blue
+
+ingress:
+  destinationRuleName: memi-dr
+  certName: memi-ingress-certs-dev
+  istio:
+    namespace: istio-system
+    akvSecrets: memi-auth-dev-kv-01
+  http:
+  - match:
+    - uri:
+        prefix: /memi-web
+
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+  portName: http-memi
+  annotations: {}
+  labels:
+    app: memi
+    project: memi-web
