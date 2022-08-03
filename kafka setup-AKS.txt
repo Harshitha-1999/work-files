@@ -1,0 +1,79 @@
+kafka setup in AKS:
+
+Step 1 - Raise SSL Cert RIT for Kafka Cert (you will get it in Azure KV as PFX/CER format)  // check access to raise rit
+Step 2 - Download in your VDI and then convert into JKS format using keytool utility (command)
+Step 3 - Encode this JKS file using base64 conversion and store it in KV with password
+Step 4 - Configure Helmchart(secret.yaml,serviceentry.yaml,deployment.yaml,config.yaml,values.yaml)
+step 5 - kafka file storage location in AKS.
+step 6 - firewal RIT for Kafka connectivity(for any connectivity issues reach out to karen/lizel)
+
+
+1. need kafka topic details
+2. APP server details provided by dev team(1,2 line remaining are common) 
+2. kafka server is from atlas/Azure? //need confirmation
+3. based on above point configure server details(rest proxy/broker)
+   Ref: confluence page -- https://confluence.safeway.com/pages/viewpage.action?spaceKey=AS&title=Server+Details
+4. need to raise Zira tikcet for, SASL_JAAS_CONFIG (config.yaml file)
+   Ref: https://jira.safeway.com/browse/PKS-335 (need to provide kafka servers which we need access- liezel give access)
+5. select key store loc in AKS
+6. secrets in keyvault:
+   kafka keystore---conversion passwd(app read)
+   identity keystore data.--text file pass
+   sasl-jaas-pasword--liezel 
+7. dockefile yum intall telnet(dxina/dxt1)
+8. telnet servername port
+
+
+RTIS--Reference
+RITM0959465 --firewal rit for kafka
+RITM0986622  --SSL cert for kafka
+
+
+commands:
+1.  convert PFX/CER to .jks file 
+    keytool -import -trustcacerts -file C:\kafka\dxina-kafka-dev.cer -keystore dxina-identity-kafka-dev.jks -storepass 9j2kU5YSYz
+2.  base 64 encode to convert to text file
+    az keyvault secret set --vault-name dxt1-auth-dev-kv-01 --encoding base64 --description text/plain --name identityKeyStoreData --file <path-to-identity-kafka.jks>
+
+------------------------------------
+
+
+me01r-kafka
+RITM1046425 -- Firewall RIT
+RITM1046471 -- SSL RIT
+
+
+---------------------
+
+links:
+
+https://jira.safeway.com/projects/PKS/issues/PKS-345?filter=allissues ---jira ref
+https://confluence.safeway.com/pages/viewpage.action?spaceKey=AS&title=Connecting+to+Kafka+Brokers------connecting to broker
+
+--------------
+Gourav:
+https://jira.safeway.com/browse/PKS-335
+https://confluence.safeway.com/pages/viewpage.action?spaceKey=AS&title=Server+Details
+-----------------------
+me01r app specific:
+https://confluence.safeway.com/pages/viewpage.action?spaceKey=AS&title=Server+Details-+After+Core+Subscription
+https://confluence.safeway.com/pages/viewpage.action?spaceKey=EDMIS&title=AAIS+-+Kafka+setup
+
+------------------------
+final:
+
+>keytool -import -trustcacerts -file me01r-dev-aks-kafka-cert.cer -keystore me01r-identity-kafka-dev.jks -storepass 987a1h2K3P4
+
+>az keyvault secret set --vault-name me01r-auth-dev-kv-01 --encoding base64 --description text/plain --name identityKeyStoreData --file W:\KTHUM02\me01r-identity-kafka-dev.jks
+
+
+Qa
+
+>keytool -import -trustcacerts -file me01r-qa-aks-kafka-cert.cer -keystore me01r-identity-kafka-qa.jks -storepass 321a1h2S3P4
+
+>az keyvault secret set --vault-name me01r-qa1-wu-kv-01 --encoding base64 --description text/plain --name identityKeyStoreData --file W:\KTHUM02\me01r-identity-kafka-qa.jks
+
+
+
+
+

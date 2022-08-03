@@ -1,0 +1,137 @@
+{{- if .Values.app.authzPolicy.clientID.enabled }}
+# Authorization policy to deny
+# all egress to external services.
+apiVersion: "security.istio.io/v1beta1"
+kind: "AuthorizationPolicy"
+metadata:
+  name: "istio-ingressgateway"
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: istio-ingressgateway    
+  rules:
+    - when:
+      - key: request.auth.audiences
+        values: [{{ .Values.global.ADClientId }}]  
+{{- end }}
+---
+{{- if .Values.app.authzPolicy.groups.enabled }}
+apiVersion: "security.istio.io/v1beta1"
+kind: "AuthorizationPolicy"
+metadata:
+  name: "{{.Values.app.labels.app}}-{{ .Values.app.labels.environment }}-{{.Values.app.authzPolicyGroups.group1}}-api-ap"
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: {{.Values.app.labels.app}}
+  action: ALLOW  
+  rules:
+  - from:
+    - source:
+        requestPrincipals: ["*"]
+    to:
+    - operation:  
+       methods: ["*"]
+       paths: [/memi-web]
+    when:
+    - key: request.auth.claims[groups]
+      values: [{{ .Values.app.groups.memiitemconversion}}] 
+{{- end }}
+
+---------------------------------------
+# Both health check and AD group
+-----------------
+{{- if .Values.app.authzPolicy.groups.enabled }}
+apiVersion: "security.istio.io/v1beta1"
+kind: "AuthorizationPolicy"
+metadata:
+  name: "{{.Values.app.labels.app}}-{{ .Values.app.labels.environment }}-{{.Values.app.authzPolicyGroups.group1}}-api-ap"
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: {{.Values.app.labels.app}}
+  action: ALLOW  
+  rules:
+  - from:
+    - source:
+        requestPrincipals: ["*"]
+    to:
+    - operation:  
+       methods: ["*"]
+       paths: [/memi-web/*]
+    - operation:  
+       methods: ["*"]
+       paths: [/*]   
+    when:
+    - key: request.auth.claims[groups]
+      values: [{{ .Values.app.groups.memiitemconversion }}] 
+  - to:
+    - operation:  
+       methods: ["GET"]
+       paths: [/memi-web/services/management/health]
+      
+{{- end }}
+
+----------------------------
+# helath check purpose
+-------
+{{- if .Values.app.authzPolicy.groups.enabled }}
+apiVersion: "security.istio.io/v1beta1"
+kind: "AuthorizationPolicy"
+metadata:
+  name: "{{.Values.app.labels.app}}-{{ .Values.app.containers.envCode }}-hc-ap"
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: {{.Values.app.labels.app}}
+  action: ALLOW
+  rules:
+  - to:
+    - operation:
+        methods: ["GET"]
+        paths: 
+          - /sdovb/healthCheck
+          - /sdovb/management/*
+{{- end }}
+
+----------------------------------------------
+# wmas app
+--------------
+{{- if .Values.app.authzPolicy.groups.enabled }}
+apiVersion: "security.istio.io/v1beta1"
+kind: "AuthorizationPolicy"
+metadata:
+  name: "{{.Values.app.labels.app}}-{{ .Values.app.containers.envCode }}-{{.Values.app.authzPolicyGroups.group1}}-api-ap"
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: {{.Values.app.labels.app}}
+  action: ALLOW  
+  rules:
+  - from:
+    - source:
+        requestPrincipals: ["*"]
+  - to:
+    - operation:  
+       methods: ["*"]
+       paths: 
+         - /wmasWeb/*
+  - to:
+    - operation:
+        methods: ["GET"]
+        paths:
+        - /wmasWeb/Status 
+        - /wmasWeb/apptPost.html
+    - operation:  
+        methods: ["POST"]
+        paths: 
+        - /wmasWeb/OneSOAPApptListener
+    when:
+    - key: request.auth.claims[groups]
+      values: [{{ .Values.app.groups.wmasad }}] 
+{{- end }}
