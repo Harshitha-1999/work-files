@@ -1,0 +1,217 @@
+commands:
+
+kubectl get all -n megn-dev
+kubectl get ns
+kubectl get pods -n megn-dev
+kubectl get pods -n megn-dev -o wide ---ip address
+kubectl edit deployment -n megn-dev
+kubectl get secret -n megn-dev
+kubectl get vs -n memiu-dev ------------appgateway details
+>kubectl get gateway -n memiu-dev------------------display gateway.
+kubectk get AzureKeyVaultSecret -n megn-dev
+kubectk apply -f secret.yaml -n megn-dev
+kubectl delete deployment -n megn-dev
+kubectl logs megn-web-mdb-deployment-6c8695b98-rdhfk -n megn-dev -c megn-web-mdb>megnlogs-1.txt
+kubectl logs megn-web-mdb-deployment-6c8695b98-rdhfk -n megn-dev -c megn-web-mdb -f   -----to see live logs
+
+~]$ az ad group show --group az-meup-dev-adm --query objectId --out tsv
+7bba3cc3-1f17-41a0-b505-e8716c417176az 
+ad group member list --group 4ec381e2-e7cf-461b-a91d-1628349bb116 | grep kthum02
+
+
+kubectl exec -it megn-web-mdb-deployment-6c8695b98-rdhfk sh -n megn-dev -c megn-web-mdb 
+kubectl scale deployment megn-web-mdb-deployment-6c8695b98-rdhfk --replicas=0 -n megn-dev 
+kubectl get pods -n megn-dev -----stopped
+ kubectl scale deployment megn-web-mdb-deployment-6c8695b98-rdhfk --replicas=3 -n megn-dev 
+kubectl get pods -n megn-dev ---started
+kubectl describe pod megn-web-mdb-deployment-6c8695b98-rdhfk -n megn-dev
+env -list env variables
+kubectl exec -it megn-web-mdb-deployment-6c8695b98-rdhfk sh -n megn-dev -c megn-web-mdb
+kubectl config get-contexts
+kubectl config use-context esco-aksba2-nonprod-westus-cluster-01
+curl mqurl:portno
+curl mqurl
+curl https://mqurl:portno ----needs ssl certs
+curl https://apimurl along with header
+curl db2url:portno
+pwd - present working directory
+cd bin; cd logs; cd . .; ls
+nslookup ----provide hostname to et ip
+ping hostname --- it gives u ip
+curl https://apim-dev-01.albertsons.com/abs/devint/memi-web/services/ -n memi-dev -c memi-web -- to check connectivity was happening or not
+curl https://apim-dev-01.albertsons.com/abs/devint/memi-web/services/   ----go inside pod and hit this command.
+kubectl config set-context --current --namespace=megn-prod   --to create namepsace in cluster.
+$jps -v 
+   -Xms128m -Xmx512m -XX:+UseG1GC   - sp2k-dev
+$ top -n 5
+ 
+  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND
+   20 megn      20   0 4731700 448892  16616 S   1.3  0.7   0:27.23 java
+   21 megn      20   0 4729652 441572  16264 S   0.7  0.7   0:26.89 java
+   22 megn      20   0 4729652 436764  16276 S   0.7  0.7   0:27.00 java
+
+521- memiu-dev working fine with and without trailing slash.
+memiu-dev and qa --image - 465 - working perfectly using url with slash(/)
+chnaged vs and gateway file in hosts section. with ingress qa as url not qa1.
+
+kubectl cp sp2k-ant-deployment-dd766f56c-2mdsg:usr/local/tomee/logs/catalina.2021-08-05.log Documents/catalina.2021-08-05.log -n sp2k-dev -c sp2k-ant
+
+kubectl cp megn-web-mdb-deployment-8476bd8c68-88pxr:logs/App.log Documents/App.log -n megn-dev -c megn-web-mdb
+
+
+kubectl cp megn-web-mdb-deployment-b47dbb5dc-rz4gj:logs/App-8080.log Documents/megnqa1.txt -n megn-qa1 -c megn-web-mdb
+
+kubectl cp megn-web-mdb-deployment-b47dbb5dc-rz4gj:logs/App-8080.log Documents/megndev1.txt -n megn-dev -c megn-web-mdb
+                                                  --------------------  -----------------------  --------  ----------------------
+	
+>helm template C:\Users\KTHUM02\platform-devops-helmcharts\application\memi --values C:\Users\KTHUM02\platform-devops-helmcharts\application\memi\env\qa1\memi-web\values.yaml
+
+>helm lint C:\Users\KTHUM02\platform-devops-helmcharts\application\memi  --values C:\Users\KTHUM02\platform-devops-helmcharts\application\memi\env\qa1\memi-web\values.yaml
+
+-----------------------------------------------------------------------------------------------------------
+Cluster login through cmd
+:
+-----------------------------------------
+Steps to login into ba1 cluster:
+
+ 
+
+az login --use-device-code                  //ba-account
+
+ 
+To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code XXXX to authenticate.
+ 
+
+
+ 
+az account set -s “72f74a79-764f-41bb-9b4c-f9b4ffd06d4f" 
+
+
+ 
+az aks get-credentials --resource-group az-entaks-nonprod-01-esco-dev-westus-rg-01 -n esco-aksba1-nonprod-westus-cluster-01
+ 
+
+
+
+ 
+
+ 
+
+
+kubectl get ns                              // normal account
+
+ 
+
+
+To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code XXXX to authenticate.
+
+------------------------------------------------------------
+steps login to ba1 cluster:
+
+
+
+az login --use-device-code
+
+az account set -s “72f74a79-764f-41bb-9b4c-f9b4ffd06d4f"
+
+az account set -s "az-entaks-nonprod-01"
+az aks get-credentials --resource-group az-entaks-nonprod-01-esco-dev-westus-rg-01 -n esco-aksba1-nonprod-westus-cluster-01
+kubectl get ns 
+
+--------------------------------------------------------------------
+Steps to login into ba2 cluster:
+
+az login --use-device-code
+az account set -s "az-entaks-nonprod-02"
+az aks get-credentials --resource-group az-entaks-nonprod-02-esco-nonprod-westus-rg-01 -n esco-aksba2-nonprod-westus-cluster-01
+kubectl get ns
+
+
+
+------------------------------------------------------------------------
+Steps to login into prod cluster:
+
+az login --use-device-code
+az account set -s "az-entaks-prod-01"
+az account set -s "az-entaks-prod-02"
+az aks get-credentials --resource-group az-entaks-prod-01-esco-prod-westus-rg-01 -n esco-aksba-prod-westus-cluster-01
+az aks get-credentials --resource-group az-entaks-prod-02-esco-prod-westus-rg-01 -n esco-aksba2-prod-westus-cluster-01
+kubectl get ns
+
+
+-----------------------------------------------------------------------------
+
+ 
+
+
+
+az login OR az login –use-device-code       //
+login using ba-account.
+
+
+
+
+
+
+az account set -s “72f74a79-764f-41bb-9b4c-f9b4ffd06d4f"
+
+
+
+az aks get-credentials --resource-group az-entaks-nonprod-01-esco-dev-westus-rg-01 -n esco-aksba1-nonprod-westus-cluster-01
+
+
+
+
+
+kubectl get ns              // 
+
+
+
+It prompt for login with normal account.
+
+
+
+
+
+
+kubectl get all –n <name_Space>       //
+
+
+
+List out all k8s components.
+
+
+
+
+
+kubectl logs <name of component> -n <name_Space> -c <name_container> 
+
+
+
+
+
+kubectl describe logs <name of component> -n <name_Space>
+
+
+
+
+
+kubectl delete <name of component> -n <name_Space>
+
+
+ 
+
+-----------------------------
+https://memiu.prod.westus.aks.az.albertsons.com/memiu-web/
+https://memiu-dev.albertsons.com/memiu-web/
+https://memiu-qa.albertsons.com/memiu-web/
+
+
+-------------------------------------------------------------
+
+C:\Users\KTHUM02>kubectl  exec -it sp2k-ant-deployment-7b689d9c85-2x7b5 sh -n sp2k-dev -c sp2k-ant
+kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl kubectl exec [POD] -- [COMMAND] instead.
+$ jps -v
+18 Bootstrap -Djava.util.logging.config.file=/usr/local/tomee/conf/logging.properties -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager -javaagent:/usr/local/tomee/lib/openejb-javaagent.jar -Djdk.tls.ephemeralDHKeySize=2048 -Djava.protocol.handler.pkgs=org.apache.catalina.webresources -Dsecurity.disable=true -Drmgr.env=DV -Xms128m -Xmx512m -XX:+UseG1GC -Dorg.apache.catalina.security.SecurityListener.UMASK=0027 -Djavax.persistence.provider=org.hibernate.ejb.HibernatePersistence -Dignore.endorsed.dirs= -Dcatalina.base=/usr/local/tomee -Dcatalina.home=/usr/local/tomee -Djava.io.tmpdir=/usr/local/tomee/temp
+100 Jps -Dapplication.home=/opt/java/openjdk -Xms8m
+$ exit
