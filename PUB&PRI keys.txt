@@ -1,0 +1,17 @@
+
+az keyvault secret set --name "SnowEncPswdKey" --vault-name "dxinaz-qa1-wu-kv-01" --file "/home/gredd11/Testgit/dxpf/Testgit/dxinaz_rsa_key.p8"   --- private key storage in KV
+
+az keyvault secret set --name "SnowUsername" --vault-name "dxinaz-qa1-wu-kv-01" --value "DXIQ00NAZ" --- username creation in KV
+
+az keyvault secret set --name "SnowEncPswdPass" --vault-name "dxinaz-qa1-wu-kv-01" --value "SnowDXINAZ@123" ----- password creation in KV
+
+az keyvault secret set --name "AppID-DXINAZ" --vault-name "dxinaz-qa1-wu-kv-01" --file "/home/gredd11/Testgit/dxpf/Testgit/dxinaz_rsa_key.pub"    -- public key storage in KV
+
+
+Run these below 2 SSL commmands to generate public and privare key pairs:
+
+C:\Users\gredd11\Documents\Newfolder>openssl genrsa 2048 | openssl pkcs8 -passout pass:DxinaZSnowFlake@123 -topk8 -inform PEM -out dxinaz_rsa_key.p8   -- private
+
+C:\Users\gredd11\Documents\Newfolder>openssl rsa -in dxinaz_rsa_key.p8 -passin pass:DxinaZSnowFlake@123 -pubout -out dxinaz_rsa_key.pub  -- public
+writing RSA key
+
