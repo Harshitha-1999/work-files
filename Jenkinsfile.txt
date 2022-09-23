@@ -1,0 +1,203 @@
+@Library('jenkins-shared-library') _
+
+pipeline {
+
+  options {
+    ansiColor('xterm')
+  }
+
+  environment {
+    registry = albUtils.getRegistry(registry_type)
+    registryCredential = albUtils.getRegistryCredentials(registry_type)
+    dockerfile           = 'Dockerfile'
+    registryRepo         = "/${application_name.toLowerCase()}/${git_repo}"
+    CommitId             = 'False'
+    imageURI             = "${registry}${registryRepo}:${env.BUILD_NUMBER}"
+    VeraAppid            = "${git_repo}-${env.BUILD_NUMBER}"
+    VeraAppName          = "Distribution Center Azure Integration (DXINAZ)"
+    AbortOnFail          = false
+    CompliancePolicy     = 'warn'
+    VulnerabilityPolicy  = 'warn'
+    logLevel		 = 'info'
+    RemoveImageOnPublish = false
+    service_a            = "/${application_name.toLowerCase()}/${application_name.toLowerCase()}-java-vendor"
+    service_a_imageURI   = "${registry}${service_a}:${env.BUILD_NUMBER}"  
+    service_b            = "/${application_name.toLowerCase()}/${application_name.toLowerCase()}-java-vendor-facility"
+    service_b_imageURI   = "${registry}${service_b}:${env.BUILD_NUMBER}"
+    service_c            = "/${application_name.toLowerCase()}/${application_name.toLowerCase()}-java-retail-store"
+    service_c_imageURI   = "${registry}${service_c}:${env.BUILD_NUMBER}" 
+    service_d            = "/${application_name.toLowerCase()}/${application_name.toLowerCase()}-java-item"
+    service_d_imageURI   = "${registry}${service_d}:${env.BUILD_NUMBER}" 
+    service_e            = "/${application_name.toLowerCase()}/${application_name.toLowerCase()}-java-item-facility"
+    service_e_imageURI   = "${registry}${service_e}:${env.BUILD_NUMBER}" 
+    service_f            = "/${application_name.toLowerCase()}/${application_name.toLowerCase()}-java-wholesale-store"
+    service_f_imageURI   = "${registry}${service_f}:${env.BUILD_NUMBER}" 
+    service_g            = "/${application_name.toLowerCase()}/${application_name.toLowerCase()}-java-purchase-order"
+    service_g_imageURI   = "${registry}${service_g}:${env.BUILD_NUMBER}"
+    service_h            = "/${application_name.toLowerCase()}/${application_name.toLowerCase()}-java-item-upc"
+    service_h_imageURI   = "${registry}${service_h}:${env.BUILD_NUMBER}"    
+    service_i          = "/${application_name.toLowerCase()}/${application_name.toLowerCase()}-java-item-sub"
+    service_i_imageURI   = "${registry}${service_i}:${env.BUILD_NUMBER}"  
+    service_j          = "/${application_name.toLowerCase()}/${application_name.toLowerCase()}-java-vendor-asn"
+    service_j_imageURI   = "${registry}${service_j}:${env.BUILD_NUMBER}" 
+    service_k          = "/${application_name.toLowerCase()}/${application_name.toLowerCase()}-transfer-cust-orches"
+    service_k_imageURI   = "${registry}${service_k}:${env.BUILD_NUMBER}"
+    service_l          = "/${application_name.toLowerCase()}/${application_name.toLowerCase()}-java-store-order"
+    service_l_imageURI   = "${registry}${service_l}:${env.BUILD_NUMBER}"  
+    service_m          = "/${application_name.toLowerCase()}/${application_name.toLowerCase()}-java-item-fl"
+    service_m_imageURI   = "${registry}${service_m}:${env.BUILD_NUMBER}"  
+    service_n          = "/${application_name.toLowerCase()}/${application_name.toLowerCase()}-java-item-facility-fl"
+    service_n_imageURI   = "${registry}${service_n}:${env.BUILD_NUMBER}" 
+    service_o          = "/${application_name.toLowerCase()}/${application_name.toLowerCase()}-java-vendor-fl"
+    service_o_imageURI   = "${registry}${service_o}:${env.BUILD_NUMBER}"
+    service_p          = "/${application_name.toLowerCase()}/${application_name.toLowerCase()}-java-vendor-facility-fl"
+    service_p_imageURI   = "${registry}${service_p}:${env.BUILD_NUMBER}"
+  }
+
+  agent { 
+    label 'Jenkins_Agent3'
+  }
+
+  stages { 
+    stage('Build, Test & SonarQube Analysis') {
+    when { allOf { environment name: 'application_type', value: 'java' } }
+      steps {
+        script {
+        echo "${env.imageURI}"
+          albBuild.sonarMavenExec()
+        }
+      }
+    }
+
+    stage('SonarQube Quality Gate') {
+    when { allOf { environment name: 'application_type', value: 'java' } }
+      steps {
+        script {
+          albBuild.sonarQualityGate(AbortOnFail)
+        }
+      }
+    }
+
+    /*stage('Veracode Scan') {
+    when { allOf { environment name: 'application_type', value: 'java' } }
+      steps {
+        script {
+          albBuild.veraCodeScan(VeraAppid, AbortOnFail, VeraAppName)
+        }
+      }
+    }*/
+
+    stage('Docker build image') {
+      steps{
+        script {
+	  dockerImage = albBuild.buildDockerTaggedImage(registry, registryRepo, dockerfile)
+          dockerImage_service_a = albBuild.buildDockerTaggedImage(registry, service_a, dockerfile)
+	  dockerImage_service_b = albBuild.buildDockerTaggedImage(registry, service_b, dockerfile)
+          dockerImage_service_c = albBuild.buildDockerTaggedImage(registry, service_c, dockerfile)
+          dockerImage_service_d = albBuild.buildDockerTaggedImage(registry, service_d, dockerfile)
+          dockerImage_service_e = albBuild.buildDockerTaggedImage(registry, service_e, dockerfile)
+	  dockerImage_service_f = albBuild.buildDockerTaggedImage(registry, service_f, dockerfile)
+          dockerImage_service_g = albBuild.buildDockerTaggedImage(registry, service_g, dockerfile)
+          dockerImage_service_h = albBuild.buildDockerTaggedImage(registry, service_h, dockerfile)
+          dockerImage_service_i = albBuild.buildDockerTaggedImage(registry, service_i, dockerfile)
+          dockerImage_service_j = albBuild.buildDockerTaggedImage(registry, service_j, dockerfile)
+	  dockerImage_service_k = albBuild.buildDockerTaggedImage(registry, service_k, dockerfile)
+	  dockerImage_service_l = albBuild.buildDockerTaggedImage(registry, service_l, dockerfile)
+          dockerImage_service_m = albBuild.buildDockerTaggedImage(registry, service_m, dockerfile)
+          dockerImage_service_n = albBuild.buildDockerTaggedImage(registry, service_n, dockerfile)
+	  dockerImage_service_o = albBuild.buildDockerTaggedImage(registry, service_o, dockerfile)
+	  dockerImage_service_p = albBuild.buildDockerTaggedImage(registry, service_p, dockerfile)
+        }
+      }
+    }
+
+    stage('Twistlock Analysis') {
+      steps {
+        script {
+	  albBuild.twistscanDockerImage(imageURI, logLevel)
+          albBuild.twistscanDockerImage(service_a_imageURI, logLevel)
+	  albBuild.twistscanDockerImage(service_b_imageURI, logLevel)
+	  albBuild.twistscanDockerImage(service_c_imageURI, logLevel)
+	  albBuild.twistscanDockerImage(service_d_imageURI, logLevel)
+	  albBuild.twistscanDockerImage(service_e_imageURI, logLevel)
+	  albBuild.twistscanDockerImage(service_f_imageURI, logLevel)
+	  albBuild.twistscanDockerImage(service_g_imageURI, logLevel)
+	  albBuild.twistscanDockerImage(service_h_imageURI, logLevel)
+          albBuild.twistscanDockerImage(service_i_imageURI, logLevel)
+          albBuild.twistscanDockerImage(service_j_imageURI, logLevel)
+	  albBuild.twistscanDockerImage(service_k_imageURI, logLevel)
+	  albBuild.twistscanDockerImage(service_l_imageURI, logLevel)
+          albBuild.twistscanDockerImage(service_m_imageURI, logLevel)
+          albBuild.twistscanDockerImage(service_n_imageURI, logLevel)
+	  albBuild.twistscanDockerImage(service_o_imageURI, logLevel)
+	  albBuild.twistscanDockerImage(service_p_imageURI, logLevel)
+        }
+      }
+    }
+
+    stage('Twistlock Publish') {
+      steps {
+        script {
+          albBuild.twistscanPublish()
+	  addShortText(text: GIT_BRANCH, borderColor: 'BLUE', color: 'GREEN')
+	 }
+      }
+    }
+
+    stage('Docker push image to ACR or GCR') {
+      steps{
+        script {
+          albBuild.publishDockerImage(registry, registryCredential, dockerImage, imageURI, removeAfterPublish = RemoveImageOnPublish)
+          albBuild.publishDockerImage(registry, registryCredential, dockerImage_service_a, service_a_imageURI, removeAfterPublish = RemoveImageOnPublish)
+	  albBuild.publishDockerImage(registry, registryCredential, dockerImage_service_b, service_b_imageURI, removeAfterPublish = RemoveImageOnPublish)
+          albBuild.publishDockerImage(registry, registryCredential, dockerImage_service_c, service_c_imageURI, removeAfterPublish = RemoveImageOnPublish)
+          albBuild.publishDockerImage(registry, registryCredential, dockerImage_service_d, service_d_imageURI, removeAfterPublish = RemoveImageOnPublish)
+          albBuild.publishDockerImage(registry, registryCredential, dockerImage_service_e, service_e_imageURI, removeAfterPublish = RemoveImageOnPublish)
+          albBuild.publishDockerImage(registry, registryCredential, dockerImage_service_f, service_f_imageURI, removeAfterPublish = RemoveImageOnPublish)
+          albBuild.publishDockerImage(registry, registryCredential, dockerImage_service_g, service_g_imageURI, removeAfterPublish = RemoveImageOnPublish)
+          albBuild.publishDockerImage(registry, registryCredential, dockerImage_service_h, service_h_imageURI, removeAfterPublish = RemoveImageOnPublish)
+          albBuild.publishDockerImage(registry, registryCredential, dockerImage_service_i, service_i_imageURI, removeAfterPublish = RemoveImageOnPublish)
+          albBuild.publishDockerImage(registry, registryCredential, dockerImage_service_j, service_j_imageURI, removeAfterPublish = RemoveImageOnPublish)
+          albBuild.publishDockerImage(registry, registryCredential, dockerImage_service_k, service_k_imageURI, removeAfterPublish = RemoveImageOnPublish)
+          albBuild.publishDockerImage(registry, registryCredential, dockerImage_service_l, service_l_imageURI, removeAfterPublish = RemoveImageOnPublish)
+          albBuild.publishDockerImage(registry, registryCredential, dockerImage_service_m, service_m_imageURI, removeAfterPublish = RemoveImageOnPublish)
+          albBuild.publishDockerImage(registry, registryCredential, dockerImage_service_n, service_n_imageURI, removeAfterPublish = RemoveImageOnPublish)
+          albBuild.publishDockerImage(registry, registryCredential, dockerImage_service_o, service_o_imageURI, removeAfterPublish = RemoveImageOnPublish)
+          albBuild.publishDockerImage(registry, registryCredential, dockerImage_service_p, service_p_imageURI, removeAfterPublish = RemoveImageOnPublish)
+        }
+      }
+    }
+  
+
+  }
+
+  post {
+    failure {
+      script {
+        albNotify.emailNotify()
+      }
+    }
+    cleanup {
+      script {
+	albBuild.removeDockerImage(imageURI)
+        albBuild.removeDockerImage(service_a_imageURI)
+	albBuild.removeDockerImage(service_b_imageURI)
+	albBuild.removeDockerImage(service_c_imageURI)
+	albBuild.removeDockerImage(service_d_imageURI)     
+	albBuild.removeDockerImage(service_e_imageURI)      
+	albBuild.removeDockerImage(service_f_imageURI)     
+	albBuild.removeDockerImage(service_g_imageURI)     	      
+        albBuild.removeDockerImage(service_h_imageURI)  
+        albBuild.removeDockerImage(service_i_imageURI)        
+        albBuild.removeDockerImage(service_j_imageURI) 
+        albBuild.removeDockerImage(service_k_imageURI)
+        albBuild.removeDockerImage(service_l_imageURI)
+        albBuild.removeDockerImage(service_m_imageURI)        
+        albBuild.removeDockerImage(service_n_imageURI) 
+        albBuild.removeDockerImage(service_o_imageURI)
+        albBuild.removeDockerImage(service_p_imageURI)
+      }
+    }
+  }
+
+}
